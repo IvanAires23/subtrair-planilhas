@@ -5,6 +5,7 @@ export interface Columns {
   doc: number | null
   ddd: number | null
   phone: number | null
+  email: number | null
 }
 
 export interface Sheet {
@@ -16,6 +17,7 @@ export interface Result {
   rows: Row[]
   removedByDoc: number
   removedByPhone: number
+  removedByEmail: number
 }
 
 function onlyDigits(value: Cell): string {
@@ -31,6 +33,11 @@ export function normalizeDoc(value: Cell): string {
   if (digits.length <= 11) return digits.padStart(11, '0')
   if (digits.length <= 14) return digits.padStart(14, '0')
   return digits
+}
+
+export function normalizeEmail(value: Cell): string {
+  const email = String(value ?? '').trim().toLowerCase()
+  return email.includes('@') ? email : ''
 }
 
 export interface PhoneKey {
@@ -60,12 +67,13 @@ export function normalizePhone(dddValue: Cell, phoneValue: Cell): PhoneKey | nul
   return { ddd, last8: number.slice(-8) }
 }
 
-/** Remove de A toda linha cujo documento OU telefone aparece em B. */
+/** Remove de A toda linha cujo documento, telefone OU e-mail aparece em B. */
 export function subtract(a: Sheet, colsA: Columns, b: Sheet, colsB: Columns): Result {
   const docsB = new Set<string>()
   const phonesB = new Set<string>()
   const last8B = new Set<string>()
   const last8NoDddB = new Set<string>()
+  const emailsB = new Set<string>()
 
   for (const row of b.rows) {
     if (colsB.doc !== null) {
@@ -80,11 +88,16 @@ export function subtract(a: Sheet, colsA: Columns, b: Sheet, colsB: Columns): Re
         else last8NoDddB.add(phone.last8)
       }
     }
+    if (colsB.email !== null) {
+      const email = normalizeEmail(row[colsB.email])
+      if (email) emailsB.add(email)
+    }
   }
 
   const rows: Row[] = []
   let removedByDoc = 0
   let removedByPhone = 0
+  let removedByEmail = 0
 
   for (const row of a.rows) {
     if (colsA.doc !== null) {
@@ -107,10 +120,17 @@ export function subtract(a: Sheet, colsA: Columns, b: Sheet, colsB: Columns): Re
         }
       }
     }
+    if (colsA.email !== null) {
+      const email = normalizeEmail(row[colsA.email])
+      if (email && emailsB.has(email)) {
+        removedByEmail++
+        continue
+      }
+    }
     rows.push(row)
   }
 
-  return { rows, removedByDoc, removedByPhone }
+  return { rows, removedByDoc, removedByPhone, removedByEmail }
 }
 
 function normalizeHeader(value: Cell): string {
@@ -124,6 +144,7 @@ function normalizeHeader(value: Cell): string {
 const DOC_PATTERN = /cpf|cnpj|documento|^doc\b/
 const DDD_PATTERN = /ddd/
 const PHONE_PATTERN = /telefone|celular|fone|whats|zap|^tel\b|^tel\d|movel/
+const EMAIL_PATTERN = /e-?mail/
 /** Colunas que não são do cliente, como "Documento do Produtor" nos relatórios da Hotmart. */
 const NOT_CUSTOMER = /produtor|afiliad|vendedor|empresa|fornecedor/
 
@@ -151,6 +172,7 @@ export function detectColumns(header: Row): Columns {
       PHONE_PATTERN,
       h => DDD_PATTERN.test(h) || DOC_PATTERN.test(h),
     ),
+    email: findColumn(header, ['email', 'e-mail'], EMAIL_PATTERN),
   }
 }
 
@@ -160,7 +182,7 @@ export function toSheet(matrix: Row[]): Sheet {
   let headerIndex = 0
   for (let i = 0; i < limit; i++) {
     const cols = detectColumns(matrix[i] ?? [])
-    if (cols.doc !== null || cols.phone !== null) {
+    if (cols.doc !== null || cols.phone !== null || cols.email !== null) {
       headerIndex = i
       break
     }

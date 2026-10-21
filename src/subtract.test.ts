@@ -25,14 +25,14 @@ describe('normalizePhone', () => {
 
 describe('detectColumns', () => {
   it('acha CPF, DDD e telefone pelo cabeçalho', () => {
-    expect(detectColumns(['Nome', 'CPF', 'DDD', 'Telefone'])).toEqual({ doc: 1, ddd: 2, phone: 3 })
-    expect(detectColumns(['Documento', 'Celular'])).toEqual({ doc: 0, ddd: null, phone: 1 })
+    expect(detectColumns(['Nome', 'CPF', 'DDD', 'Telefone'])).toEqual({ doc: 1, ddd: 2, phone: 3, email: null })
+    expect(detectColumns(['Documento', 'Celular'])).toEqual({ doc: 0, ddd: null, phone: 1, email: null })
   })
 
   it('ignora colunas do produtor no relatório da Hotmart', () => {
     const header = ['Nome do Produto', 'Documento do Produtor', 'Nome', 'Documento', 'Email', 'DDD', 'Telefone']
-    expect(detectColumns(header)).toEqual({ doc: 3, ddd: 5, phone: 6 })
-    expect(detectColumns(['Documento do Produtor', 'CPF do cliente', 'Tel'])).toEqual({ doc: 1, ddd: null, phone: 2 })
+    expect(detectColumns(header)).toEqual({ doc: 3, ddd: 5, phone: 6, email: 4 })
+    expect(detectColumns(['Documento do Produtor', 'CPF do cliente', 'Tel'])).toEqual({ doc: 1, ddd: null, phone: 2, email: null })
   })
 })
 
@@ -64,5 +64,19 @@ describe('subtract', () => {
     const b2 = toSheet([['CPF', 'DDD', 'Telefone'], ['', '51', '96666-0003']])
     const result = subtract(a, detectColumns(a.header), b2, detectColumns(b2.header))
     expect(result.rows).toHaveLength(4)
+  })
+})
+
+describe('subtract por e-mail', () => {
+  it('remove quem só bate o e-mail', () => {
+    const a = toSheet([
+      ['Nome', 'Documento', 'Email', 'DDD', 'Telefone'],
+      ['Ana', '', ' Ana@Gmail.com ', '', ''],
+      ['Bia', '', 'bia@gmail.com', '', ''],
+    ])
+    const b = toSheet([['E-mail'], ['ana@gmail.com']])
+    const result = subtract(a, detectColumns(a.header), b, detectColumns(b.header))
+    expect(result.rows.map(r => r[0])).toEqual(['Bia'])
+    expect(result.removedByEmail).toBe(1)
   })
 })
