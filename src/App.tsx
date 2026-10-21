@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { type Columns, type Result, type Row, type Sheet, detectColumns, subtract, toSheet } from './subtract'
+import { OUTPUT_HEADER, toOutput } from './output'
 import { sumSheets } from './sum'
 import './App.css'
 
@@ -49,8 +50,8 @@ function fromSheet(name: string, sheet: Sheet): LoadedFile {
   return { name, workbook, sheetName: 'Soma', sheet, columns: detectColumns(sheet.header) }
 }
 
-function download(header: Row, rows: Row[], baseName: string, sheetName: string, format: 'xlsx' | 'csv') {
-  const sheet = XLSX.utils.aoa_to_sheet([header, ...rows])
+function download(data: Sheet, baseName: string, sheetName: string, format: 'xlsx' | 'csv') {
+  const sheet = XLSX.utils.aoa_to_sheet([data.header, ...data.rows])
   if (format === 'csv') {
     // ";" e BOM UTF-8 para o Excel em português abrir com colunas e acentos certos.
     const csv = XLSX.utils.sheet_to_csv(sheet, { FS: ';' })
@@ -182,6 +183,7 @@ function FilePicker({
               </select>
             </label>
           )}
+          {columnSelect('name', 'Nome')}
           {columnSelect('doc', 'CPF / documento')}
           {columnSelect('ddd', 'DDD')}
           {columnSelect('phone', 'Telefone')}
@@ -190,6 +192,10 @@ function FilePicker({
       )}
     </section>
   )
+}
+
+function OutputNote() {
+  return <p className="hint output-note">O arquivo sai só com as colunas: {OUTPUT_HEADER.join(', ')}.</p>
 }
 
 function SumPanel({
@@ -282,18 +288,20 @@ function SumPanel({
               <dt>Planilhas</dt>
               <dd>{count(files.length)}</dd>
             </div>
-            <div>
-              <dt>Colunas</dt>
-              <dd>{count(total.header.length)}</dd>
-            </div>
             <div className="total">
               <dt>Linhas no total</dt>
               <dd>{count(total.rows.length)}</dd>
             </div>
           </dl>
           <div className="downloads">
-            <button onClick={() => download(total.header, total.rows, name, 'Soma', 'xlsx')}>Baixar .xlsx</button>
-            <button onClick={() => download(total.header, total.rows, name, 'Soma', 'csv')}>Baixar .csv</button>
+            {(['xlsx', 'csv'] as const).map(format => (
+              <button
+                key={format}
+                onClick={() => download(toOutput(total, detectColumns(total.header)), name, 'Soma', format)}
+              >
+                Baixar .{format}
+              </button>
+            ))}
             <button className="secondary" onClick={() => onUse(fromSheet(name, total), 'A')}>
               Usar como planilha A →
             </button>
@@ -301,6 +309,7 @@ function SumPanel({
               Usar como planilha B →
             </button>
           </div>
+          <OutputNote />
         </section>
       )}
     </>
@@ -446,13 +455,19 @@ export default function App() {
                   <button
                     key={format}
                     onClick={() =>
-                      download(fileA.sheet.header, result.rows, `${baseName(fileA.name)} - filtrada`, 'Planilha C', format)
+                      download(
+                        toOutput({ header: fileA.sheet.header, rows: result.rows }, fileA.columns),
+                        `${baseName(fileA.name)} - filtrada`,
+                        'Planilha C',
+                        format,
+                      )
                     }
                   >
                     Baixar .{format}
                   </button>
                 ))}
               </div>
+              <OutputNote />
             </section>
           )}
         </>

@@ -228,3 +228,7 @@ button.icon {
   color: var(--text);
   border: 1px solid var(--border);
 }
+
+.output-note {
+  margin: 12px 0 0;
+}

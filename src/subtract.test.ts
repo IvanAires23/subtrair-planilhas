@@ -25,14 +25,14 @@ describe('normalizePhone', () => {
 
 describe('detectColumns', () => {
   it('acha CPF, DDD e telefone pelo cabeçalho', () => {
-    expect(detectColumns(['Nome', 'CPF', 'DDD', 'Telefone'])).toEqual({ doc: 1, ddd: 2, phone: 3, email: null })
-    expect(detectColumns(['Documento', 'Celular'])).toEqual({ doc: 0, ddd: null, phone: 1, email: null })
+    expect(detectColumns(['Nome', 'CPF', 'DDD', 'Telefone'])).toEqual({ name: 0, doc: 1, ddd: 2, phone: 3, email: null })
+    expect(detectColumns(['Documento', 'Celular'])).toEqual({ name: null, doc: 0, ddd: null, phone: 1, email: null })
   })
 
   it('ignora colunas do produtor no relatório da Hotmart', () => {
     const header = ['Nome do Produto', 'Documento do Produtor', 'Nome', 'Documento', 'Email', 'DDD', 'Telefone']
-    expect(detectColumns(header)).toEqual({ doc: 3, ddd: 5, phone: 6, email: 4 })
-    expect(detectColumns(['Documento do Produtor', 'CPF do cliente', 'Tel'])).toEqual({ doc: 1, ddd: null, phone: 2, email: null })
+    expect(detectColumns(header)).toEqual({ name: 2, doc: 3, ddd: 5, phone: 6, email: 4 })
+    expect(detectColumns(['Documento do Produtor', 'CPF do cliente', 'Tel'])).toEqual({ name: null, doc: 1, ddd: null, phone: 2, email: null })
   })
 })
 

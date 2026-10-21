@@ -2,6 +2,7 @@ export type Cell = string | number | boolean | Date | null | undefined
 export type Row = Cell[]
 
 export interface Columns {
+  name: number | null
   doc: number | null
   ddd: number | null
   phone: number | null
@@ -145,6 +146,7 @@ const DOC_PATTERN = /cpf|cnpj|documento|^doc\b/
 const DDD_PATTERN = /ddd/
 const PHONE_PATTERN = /telefone|celular|fone|whats|zap|^tel\b|^tel\d|movel/
 const EMAIL_PATTERN = /e-?mail/
+const NAME_PATTERN = /nome|name|cliente|comprador/
 /** Colunas que não são do cliente, como "Documento do Produtor" nos relatórios da Hotmart. */
 const NOT_CUSTOMER = /produtor|afiliad|vendedor|empresa|fornecedor/
 
@@ -164,6 +166,10 @@ function findColumn(
 
 export function detectColumns(header: Row): Columns {
   return {
+    name: findColumn(header, ['nome', 'nome completo', 'name', 'cliente', 'comprador'], NAME_PATTERN, h =>
+      /produto|oferta|cupom|arquivo|planilha/.test(h) ||
+      [DOC_PATTERN, DDD_PATTERN, PHONE_PATTERN, EMAIL_PATTERN].some(p => p.test(h)),
+    ),
     doc: findColumn(header, ['cpf', 'documento', 'doc', 'cpf/cnpj', 'cpf_cnpj', 'cnpj'], DOC_PATTERN),
     ddd: findColumn(header, ['ddd'], DDD_PATTERN),
     phone: findColumn(
