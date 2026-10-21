@@ -17,7 +17,7 @@ Tudo roda no navegador: os arquivos nunca são enviados para servidor.
   pontuação, e compara DDD + últimos 8 dígitos (assim o 9º dígito do celular não atrapalha).
   `(11) 98765-4321`, `+55 11 987654321` e DDD `11` + `8765-4321` são o mesmo número.
   Se um dos lados não tiver DDD, compara só pelo número.
-- **Formatos:** `.xlsx`, `.xls`, `.ods`, `.csv` (UTF-8 ou Latin-1, com `,` ou `;`). A saída é `.xlsx` com as
+- **Formatos:** `.xlsx`, `.xls`, `.ods`, `.csv` (UTF-8 ou Latin-1, com `,` ou `;`). A planilha C sai em `.xlsx` ou `.csv` (separado por `;`, abre direto no Excel), com as
   colunas originais de A.
 
 ## Desenvolvimento

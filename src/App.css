@@ -147,3 +147,9 @@ footer {
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

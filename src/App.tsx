@@ -168,13 +168,24 @@ export default function App() {
     setResult(subtract(fileA.sheet, fileA.columns, fileB.sheet, fileB.columns))
   }
 
-  const download = () => {
+  const download = (format: 'xlsx' | 'csv') => {
     if (!fileA || !result) return
     const sheet = XLSX.utils.aoa_to_sheet([fileA.sheet.header, ...result.rows])
+    const base = `${fileA.name.replace(/\.[^.]+$/, '')} - filtrada`
+    if (format === 'csv') {
+      // ";" e BOM UTF-8 para o Excel em português abrir com colunas e acentos certos.
+      const csv = XLSX.utils.sheet_to_csv(sheet, { FS: ';' })
+      const url = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' }))
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${base}.csv`
+      link.click()
+      URL.revokeObjectURL(url)
+      return
+    }
     const workbook = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(workbook, sheet, 'Planilha C')
-    const base = fileA.name.replace(/\.[^.]+$/, '')
-    XLSX.writeFile(workbook, `${base} - filtrada.xlsx`)
+    XLSX.writeFile(workbook, `${base}.xlsx`)
   }
 
   return (
@@ -236,7 +247,10 @@ export default function App() {
               <dd>{result.rows.length.toLocaleString('pt-BR')}</dd>
             </div>
           </dl>
-          <button onClick={download}>Baixar planilha C (.xlsx)</button>
+          <div className="downloads">
+            <button onClick={() => download('xlsx')}>Baixar .xlsx</button>
+            <button onClick={() => download('csv')}>Baixar .csv</button>
+          </div>
         </section>
       )}
 
