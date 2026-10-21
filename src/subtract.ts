@@ -124,20 +124,33 @@ function normalizeHeader(value: Cell): string {
 const DOC_PATTERN = /cpf|cnpj|documento|^doc\b/
 const DDD_PATTERN = /ddd/
 const PHONE_PATTERN = /telefone|celular|fone|whats|zap|^tel\b|^tel\d|movel/
+/** Colunas que não são do cliente, como "Documento do Produtor" nos relatórios da Hotmart. */
+const NOT_CUSTOMER = /produtor|afiliad|vendedor|empresa|fornecedor/
 
-function findColumn(header: Row, pattern: RegExp, skip: (h: string) => boolean = () => false): number | null {
-  const index = header.findIndex(cell => {
-    const h = normalizeHeader(cell)
-    return h !== '' && pattern.test(h) && !skip(h)
-  })
+function findColumn(
+  header: Row,
+  exact: string[],
+  pattern: RegExp,
+  skip: (h: string) => boolean = () => false,
+): number | null {
+  const names = header.map(normalizeHeader)
+  // Nome exato ganha de nome parecido: "Documento" antes de "Documento do Produtor".
+  const exactIndex = names.findIndex(h => exact.includes(h))
+  if (exactIndex !== -1) return exactIndex
+  const index = names.findIndex(h => h !== '' && pattern.test(h) && !NOT_CUSTOMER.test(h) && !skip(h))
   return index === -1 ? null : index
 }
 
 export function detectColumns(header: Row): Columns {
   return {
-    doc: findColumn(header, DOC_PATTERN),
-    ddd: findColumn(header, DDD_PATTERN),
-    phone: findColumn(header, PHONE_PATTERN, h => DDD_PATTERN.test(h) || DOC_PATTERN.test(h)),
+    doc: findColumn(header, ['cpf', 'documento', 'doc', 'cpf/cnpj', 'cpf_cnpj', 'cnpj'], DOC_PATTERN),
+    ddd: findColumn(header, ['ddd'], DDD_PATTERN),
+    phone: findColumn(
+      header,
+      ['telefone', 'celular', 'fone', 'whatsapp', 'tel'],
+      PHONE_PATTERN,
+      h => DDD_PATTERN.test(h) || DOC_PATTERN.test(h),
+    ),
   }
 }
 

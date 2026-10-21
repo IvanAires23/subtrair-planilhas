@@ -28,6 +28,12 @@ describe('detectColumns', () => {
     expect(detectColumns(['Nome', 'CPF', 'DDD', 'Telefone'])).toEqual({ doc: 1, ddd: 2, phone: 3 })
     expect(detectColumns(['Documento', 'Celular'])).toEqual({ doc: 0, ddd: null, phone: 1 })
   })
+
+  it('ignora colunas do produtor no relatório da Hotmart', () => {
+    const header = ['Nome do Produto', 'Documento do Produtor', 'Nome', 'Documento', 'Email', 'DDD', 'Telefone']
+    expect(detectColumns(header)).toEqual({ doc: 3, ddd: 5, phone: 6 })
+    expect(detectColumns(['Documento do Produtor', 'CPF do cliente', 'Tel'])).toEqual({ doc: 1, ddd: null, phone: 2 })
+  })
 })
 
 describe('subtract', () => {
