@@ -14,9 +14,13 @@ describe('joinPhone', () => {
 })
 
 describe('firstName', () => {
-  it('pega a primeira palavra do nome', () => {
+  it('pega a primeira palavra do nome, só com a inicial maiúscula', () => {
     expect(firstName('  Ana Maria Silva ')).toBe('Ana')
     expect(firstName('Ana')).toBe('Ana')
+    expect(firstName('ANA MARIA')).toBe('Ana')
+    expect(firstName('joão silva')).toBe('João')
+    expect(firstName('ÉRICA')).toBe('Érica')
+    expect(firstName('ANA-CLARA souza')).toBe('Ana-Clara')
     expect(firstName('')).toBe('')
     expect(firstName(null)).toBe('')
   })

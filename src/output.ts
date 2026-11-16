@@ -15,9 +15,11 @@ export function joinPhone(ddd: Cell, phone: Cell): string {
   return digits(ddd).replace(/^0+/, '') + number
 }
 
-/** Primeira palavra do nome: "  Ana Maria Silva" → "Ana". */
+/** Primeira palavra do nome, só com a inicial maiúscula: "  ANA Maria Silva" → "Ana", "joão" → "João". */
 export function firstName(name: Cell): string {
-  return text(name).split(/\s+/)[0] ?? ''
+  const word = (text(name).split(/\s+/)[0] ?? '').toLocaleLowerCase('pt-BR')
+  // Nome composto com hífen também: "ANA-CLARA" → "Ana-Clara".
+  return word.replace(/(^|-)(\p{L})/gu, (_, sep: string, letter: string) => sep + letter.toLocaleUpperCase('pt-BR'))
 }
 
 /** Reduz a planilha às colunas que interessam: nome, primeiro nome, e-mail, documento, DDD, telefone e telefone com DDD. */
