@@ -1,6 +1,6 @@
 import { type Cell, type Columns, type Row, type Sheet, normalizeDoc } from './subtract'
 
-export const OUTPUT_HEADER = ['Nome', 'E-mail', 'Documento', 'DDD', 'Telefone', 'Telefone com DDD']
+export const OUTPUT_HEADER = ['Nome', 'Primeiro nome', 'E-mail', 'Documento', 'DDD', 'Telefone', 'Telefone com DDD']
 
 const text = (value: Cell) => (value === null || value === undefined ? '' : String(value).trim())
 const digits = (value: Cell) => text(value).replace(/\D/g, '')
@@ -15,15 +15,22 @@ export function joinPhone(ddd: Cell, phone: Cell): string {
   return digits(ddd).replace(/^0+/, '') + number
 }
 
-/** Reduz a planilha às colunas que interessam: nome, e-mail, documento, DDD, telefone e telefone com DDD. */
+/** Primeira palavra do nome: "  Ana Maria Silva" → "Ana". */
+export function firstName(name: Cell): string {
+  return text(name).split(/\s+/)[0] ?? ''
+}
+
+/** Reduz a planilha às colunas que interessam: nome, primeiro nome, e-mail, documento, DDD, telefone e telefone com DDD. */
 export function toOutput(sheet: Sheet, columns: Columns): Sheet {
   const get = (row: Row, index: number | null): Cell => (index === null ? '' : row[index])
   const rows = sheet.rows.map(row => {
     const doc = get(row, columns.doc)
     const ddd = get(row, columns.ddd)
     const phone = get(row, columns.phone)
+    const name = get(row, columns.name)
     return [
-      text(get(row, columns.name)),
+      text(name),
+      firstName(name),
       text(get(row, columns.email)),
       // Documento que virou número no Excel perdeu os zeros à esquerda; texto fica como veio.
       typeof doc === 'number' ? normalizeDoc(doc) : text(doc),

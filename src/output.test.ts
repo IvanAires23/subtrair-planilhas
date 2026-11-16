@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { joinPhone, OUTPUT_HEADER, toOutput } from './output'
+import { firstName, joinPhone, OUTPUT_HEADER, toOutput } from './output'
 import { detectColumns } from './subtract'
 
 describe('joinPhone', () => {
@@ -13,16 +13,25 @@ describe('joinPhone', () => {
   })
 })
 
+describe('firstName', () => {
+  it('pega a primeira palavra do nome', () => {
+    expect(firstName('  Ana Maria Silva ')).toBe('Ana')
+    expect(firstName('Ana')).toBe('Ana')
+    expect(firstName('')).toBe('')
+    expect(firstName(null)).toBe('')
+  })
+})
+
 describe('toOutput', () => {
-  it('deixa só nome, e-mail, documento, DDD, telefone e telefone com DDD', () => {
+  it('deixa só nome, primeiro nome, e-mail, documento, DDD, telefone e telefone com DDD', () => {
     const header = ['Nome do Produto', 'Documento do Produtor', 'Nome', 'Documento', 'Email', 'DDD', 'Telefone', 'CEP']
     const sheet = {
       header,
-      rows: [['Imersão', '348', ' Ana ', 2290023230, 'ana@x.com', '94', '999039374', '68500']],
+      rows: [['Imersão', '348', ' Ana  Maria Silva ', 2290023230, 'ana@x.com', '94', '999039374', '68500']],
     }
     expect(toOutput(sheet, detectColumns(header))).toEqual({
       header: OUTPUT_HEADER,
-      rows: [['Ana', 'ana@x.com', '02290023230', '94', '999039374', '94999039374']],
+      rows: [['Ana  Maria Silva', 'Ana', 'ana@x.com', '02290023230', '94', '999039374', '94999039374']],
     })
   })
 })
