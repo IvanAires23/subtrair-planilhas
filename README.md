@@ -27,7 +27,7 @@ Tudo roda no navegador: os arquivos nunca são enviados para servidor.
 ## Planilha que sai
 
 Tanto a soma quanto a planilha C são baixadas (`.xlsx` ou `.csv`) só com as colunas
-**Nome, E-mail, Documento, DDD, Telefone** e **Telefone com DDD** (ex.: `11980602608`).
+**Nome, Primeiro nome, E-mail, Documento, DDD, Telefone** e **Telefone com DDD** (ex.: `11980602608`). O primeiro nome sai só com a inicial maiúscula (`ANA MARIA` → `Ana`).
 Para comparar, o site usa as colunas originais; só o arquivo baixado é enxuto.
 - **Formatos:** `.xlsx`, `.xls`, `.ods`, `.csv` (UTF-8 ou Latin-1, com `,` ou `;`). A planilha C sai em `.xlsx` ou `.csv` (separado por `;`, abre direto no Excel), com as
   colunas originais de A.
